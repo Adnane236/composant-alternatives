@@ -27,7 +27,7 @@ export default function HomePage() {
       {/* Hero */}
       <section className="hero-banner">
         <div className="hero-brand">
-          <span className="hero-tag">APTIV · JLR L550</span>
+          <span className="hero-tag">Versigent · JLR L550</span>
           <h1 className="hero-title">Gestion Faisceaux<br /><span style={{ color: '#f5c86b' }}>Électriques</span></h1>
           <p className="hero-subtitle">
             Tableau de bord industriel pour la gestion des fils, torsades, splices et suivi de production — Passenger Door RHD / LHD.
