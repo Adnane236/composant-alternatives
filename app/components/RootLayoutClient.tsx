@@ -129,6 +129,9 @@ function AppShell({ children }: Props) {
             <div className="footer-divider" />
             <div className="footer-bottom-content">
               <span>© {new Date().getFullYear()} Versigent. Tous droits réservés.</span>
+              <a href="https://portfolio-adnane-megrini.netlify.app/" target="_blank" rel="noopener noreferrer" className="footer-dev-credit">
+                Développé par <strong>Adnane Megrini</strong>
+              </a>
               <span className="footer-version">v0.1.0 · Composant Alternatives</span>
             </div>
           </div>

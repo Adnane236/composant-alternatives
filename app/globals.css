@@ -1312,6 +1312,26 @@ select {
   border-radius: 6px;
 }
 
+.footer-dev-credit {
+  color: #5a7da8;
+  font-size: 0.82rem;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.footer-dev-credit:hover {
+  color: #f5c86b;
+}
+
+.footer-dev-credit strong {
+  color: #8aaed4;
+  transition: color 0.2s;
+}
+
+.footer-dev-credit:hover strong {
+  color: #f5c86b;
+}
+
 /* Responsive footer */
 @media (max-width: 900px) {
   .footer-grid {
