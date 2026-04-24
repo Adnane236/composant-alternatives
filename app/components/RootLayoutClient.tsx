@@ -56,9 +56,6 @@ function AppShell({ children }: Props) {
             })}
           </nav>
 
-          <div className="site-actions">
-            <span className="project-badge">JLR · L550</span>
-          </div>
         </div>
       </header>
       <main>{children}</main>

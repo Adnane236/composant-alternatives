@@ -181,8 +181,8 @@ select {
 .site-nav {
   display: flex;
   align-items: center;
-  flex-wrap: wrap;
-  gap: 18px;
+  flex-wrap: nowrap;
+  gap: 4px;
 }
 
 .site-nav a {
