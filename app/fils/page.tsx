@@ -31,7 +31,7 @@ export default function FilsPage() {
     <main className="container">
       <div className="section-heading">
         <div>
-          <h2>Fils simples</h2>
+          <h2>Wire Cutting Specs</h2>
           <p>Données de câblage — {fils.length} fils chargés</p>
         </div>
       </div>

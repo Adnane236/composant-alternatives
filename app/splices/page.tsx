@@ -31,7 +31,7 @@ export default function SplicesPage() {
     <main className="container">
       <div className="section-heading">
         <div>
-          <h2>Splices</h2>
+          <h2>QC & Traceability</h2>
           <p>Points de jonction — {splices.length} splices chargés</p>
         </div>
       </div>

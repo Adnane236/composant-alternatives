@@ -7,13 +7,20 @@ import { usePathname } from 'next/navigation';
 type Props = { children: React.ReactNode };
 
 const NAV_LINKS = [
-  { href: '/',            label: 'Dashboard' },
-  { href: '/fils',        label: 'Fils' },
-  { href: '/torsades',    label: 'Torsades' },
-  { href: '/splices',     label: 'Splices' },
-  { href: '/production',  label: 'Production' },
-  { href: '/inventaire',  label: 'Inventaire' },
+  { href: '/',            label: 'After-Sales' },
+  { href: '/fils',        label: 'Wire Cutting Specs' },
+  { href: '/torsades',    label: 'Cutting Data' },
+  { href: '/splices',     label: 'QC & Traceability' },
+  { href: '/production',  label: 'Order Planning' },
+  { href: '/inventaire',  label: 'Crimping Dies' },
   { href: '/contacts',    label: 'Contacts' },
+];
+
+const SYSTEM_LINKS = [
+  { label: 'ERP', icon: '⊞' },
+  { label: 'PLM', icon: '⊟' },
+  { label: 'MES', icon: '⊠' },
+  { label: 'QMS', icon: '⊡' },
 ];
 
 function AppShell({ children }: Props) {
@@ -92,11 +99,11 @@ function AppShell({ children }: Props) {
             <div className="footer-col">
               <h4 className="footer-col-title">Modules</h4>
               <ul className="footer-links">
-                <li><Link href="/fils">⚡ Fils Simples</Link></li>
-                <li><Link href="/torsades">🔀 Torsades</Link></li>
-                <li><Link href="/splices">🔗 Splices</Link></li>
-                <li><Link href="/production">📦 Production</Link></li>
-                <li><Link href="/inventaire">🔧 Inventaire</Link></li>
+                <li><Link href="/fils">⚡ Wire Cutting Specs</Link></li>
+                <li><Link href="/torsades">🔀 Cutting Data</Link></li>
+                <li><Link href="/splices">🔗 QC & Traceability</Link></li>
+                <li><Link href="/production">📦 Order Planning</Link></li>
+                <li><Link href="/inventaire">🔧 Crimping Dies</Link></li>
                 <li><Link href="/contacts">📋 Contacts</Link></li>
               </ul>
             </div>
@@ -127,12 +134,20 @@ function AppShell({ children }: Props) {
 
           <div className="footer-bottom">
             <div className="footer-divider" />
+            <div className="system-bar">
+              {SYSTEM_LINKS.map(s => (
+                <button key={s.label} className="system-bar-btn" title={`Intégration ${s.label}`}>
+                  <span className="system-bar-icon">{s.icon}</span>
+                  {s.label}
+                </button>
+              ))}
+            </div>
             <div className="footer-bottom-content">
               <span>© {new Date().getFullYear()} Versigent. Tous droits réservés.</span>
               <a href="https://portfolio-adnane-megrini.netlify.app/" target="_blank" rel="noopener noreferrer" className="footer-dev-credit">
                 Développé par <strong>Adnane Megrini</strong>
               </a>
-              <span className="footer-version">v0.1.0 · Composant Alternatives</span>
+              <span className="footer-version">v0.1.0 · After-Sales</span>
             </div>
           </div>
         </div>

@@ -18,7 +18,7 @@ export default function AvailabilityPage() {
     <main className="container">
       <div className="section-heading">
         <div>
-          <h2>Disponibilité des câblages</h2>
+          <h2>Seal Kits</h2>
           <p>Vue consolidée des fils par famille et zone</p>
         </div>
       </div>

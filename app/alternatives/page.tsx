@@ -22,7 +22,7 @@ export default function AlternativesPage() {
     <main className="container">
       <div className="section-heading">
         <div>
-          <h2>Torsades & variantes</h2>
+          <h2>BOM & Alternatives</h2>
           <p>Vue par groupe de torsades et fils associés</p>
         </div>
         <Link href="/torsades" className="button-primary">Vue complète →</Link>

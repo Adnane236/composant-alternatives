@@ -36,7 +36,7 @@ export default function TorsadesPage() {
     <main className="container">
       <div className="section-heading">
         <div>
-          <h2>Torsades</h2>
+          <h2>Cutting Data</h2>
           <p>Fiches de préparation — {Object.keys(groups).length} torsades</p>
         </div>
       </div>

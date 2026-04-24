@@ -5,12 +5,12 @@ import { useEffect, useState } from 'react';
 import type { DashboardStats } from '../lib/db';
 
 const NAV_CARDS = [
-  { href: '/fils',        icon: '⚡', label: 'Fils Simples',     desc: 'Câblage RHD / LHD',      color: '#3f8cff' },
-  { href: '/torsades',    icon: '🔀', label: 'Torsades',         desc: 'Fiches de préparation',   color: '#47d7ff' },
-  { href: '/splices',     icon: '🔗', label: 'Splices',          desc: 'Points de jonction',      color: '#f5c86b' },
-  { href: '/production',  icon: '📦', label: 'Production',       desc: 'Suivi commandes/livraisons', color: '#4bc292' },
-  { href: '/inventaire',  icon: '🔧', label: 'Inventaire',       desc: 'Outils process M6',       color: '#ffa12f' },
-  { href: '/contacts',    icon: '📋', label: 'Contacts',         desc: 'PC&L par projet',         color: '#a78bfa' },
+  { href: '/fils',        icon: '⚡', label: 'Wire Cutting Specs', desc: 'Câblage RHD / LHD',         color: '#3f8cff' },
+  { href: '/torsades',    icon: '🔀', label: 'Cutting Data',       desc: 'Fiches de préparation',     color: '#47d7ff' },
+  { href: '/splices',     icon: '🔗', label: 'QC & Traceability',  desc: 'Points de jonction',        color: '#f5c86b' },
+  { href: '/production',  icon: '📦', label: 'Order Planning',     desc: 'Suivi commandes/livraisons',color: '#4bc292' },
+  { href: '/inventaire',  icon: '🔧', label: 'Crimping Dies',      desc: 'Outils process M6',         color: '#ffa12f' },
+  { href: '/contacts',    icon: '📋', label: 'Contacts',           desc: 'PC&L par projet',           color: '#a78bfa' },
 ];
 
 export default function HomePage() {
@@ -28,9 +28,9 @@ export default function HomePage() {
       <section className="hero-banner">
         <div className="hero-brand">
           <span className="hero-tag">Versigent · JLR L550</span>
-          <h1 className="hero-title">Gestion Faisceaux<br /><span style={{ color: '#f5c86b' }}>Électriques</span></h1>
+          <h1 className="hero-title">After-Sales<br /><span style={{ color: '#f5c86b' }}>Dashboard</span></h1>
           <p className="hero-subtitle">
-            Tableau de bord industriel pour la gestion des fils, torsades, splices et suivi de production — Passenger Door RHD / LHD.
+            Tableau de bord industriel After-Sales — Order Planning, BOM, Wire Cutting Specs, Crimping Dies, QC &amp; Traceability.
           </p>
         </div>
         <div className="hero-kpi-row">
@@ -57,7 +57,7 @@ export default function HomePage() {
       <section style={{ marginTop: 28 }}>
         <div className="section-heading">
           <div>
-            <h2>Statut Production</h2>
+            <h2>Order Planning Status</h2>
             <p>Commandes actives par feuille de suivi</p>
           </div>
           <Link href="/production" className="button-secondary" style={{ fontSize: '0.9rem' }}>Voir tout →</Link>

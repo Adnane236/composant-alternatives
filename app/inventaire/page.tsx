@@ -36,7 +36,7 @@ export default function InventairePage() {
     <main className="container">
       <div className="section-heading">
         <div>
-          <h2>Inventaire Outils</h2>
+          <h2>Crimping Dies</h2>
           <p>M6 Wk02-4 — Total: <strong style={{ color: '#f5c86b' }}>{outils.length}</strong> outils</p>
         </div>
       </div>
