@@ -1335,18 +1335,10 @@ select {
 /* Minimal footer layout */
 .footer-minimal {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 32px;
-  padding: 32px 0 24px;
-  flex-wrap: wrap;
-}
-
-.footer-minimal-brand {
-  display: flex;
   flex-direction: column;
-  gap: 10px;
-  max-width: 380px;
+  gap: 12px;
+  padding: 32px 0 24px;
+  max-width: 420px;
 }
 
 /* Footer info badges */

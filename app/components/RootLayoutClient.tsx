@@ -67,18 +67,10 @@ function AppShell({ children }: Props) {
         <div className="footer-glow" />
         <div className="footer-inner">
           <div className="footer-minimal">
-            <div className="footer-minimal-brand">
-              <img src={logo} alt="Versigent" className="footer-logo" />
-              <p className="footer-tagline">
-                Tableau de bord industriel After-Sales — suivi des fils, torsades, splices et production.
-              </p>
-            </div>
-            <div className="footer-badges">
-              <div className="footer-badge"><span className="footer-badge-label">Client</span><span className="footer-badge-value">JLR — L550</span></div>
-              <div className="footer-badge"><span className="footer-badge-label">Produit</span><span className="footer-badge-value">Passenger Door</span></div>
-              <div className="footer-badge"><span className="footer-badge-label">Config</span><span className="footer-badge-value">RHD / LHD</span></div>
-              <div className="footer-badge"><span className="footer-badge-label">Plateforme</span><span className="footer-badge-value">Next.js 14</span></div>
-            </div>
+            <img src={logo} alt="Versigent" className="footer-logo" />
+            <p className="footer-tagline">
+              Tableau de bord industriel After-Sales — suivi des fils, torsades, splices et production.
+            </p>
           </div>
           <div className="footer-divider" />
           <div className="footer-bottom-content">
