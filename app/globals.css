@@ -1349,40 +1349,37 @@ select {
   max-width: 380px;
 }
 
-/* System bar (ERP / PLM / MES / QMS) */
-.system-bar {
+/* Footer info badges */
+.footer-badges {
   display: flex;
-  gap: 12px;
-  justify-content: center;
-  margin-bottom: 20px;
-  flex-wrap: wrap;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 200px;
 }
 
-.system-bar-btn {
-  display: inline-flex;
+.footer-badge {
+  display: flex;
+  justify-content: space-between;
   align-items: center;
-  gap: 8px;
-  padding: 10px 28px;
+  gap: 16px;
+  padding: 8px 14px;
   border-radius: 8px;
-  border: 1px solid rgba(63,140,255,0.25);
-  background: rgba(63,140,255,0.1);
-  color: #82a3dc;
-  font-size: 0.95rem;
-  font-weight: 600;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.06);
+}
+
+.footer-badge-label {
+  font-size: 0.75rem;
+  color: #4a6080;
+  text-transform: uppercase;
   letter-spacing: 0.08em;
-  cursor: pointer;
-  transition: background 0.2s, color 0.2s, border-color 0.2s;
+  font-weight: 600;
 }
 
-.system-bar-btn:hover {
-  background: rgba(63,140,255,0.22);
-  color: #eaf0fc;
-  border-color: rgba(63,140,255,0.5);
-}
-
-.system-bar-icon {
-  font-size: 1.1rem;
-  opacity: 0.75;
+.footer-badge-value {
+  font-size: 0.82rem;
+  color: #93a7cb;
+  font-weight: 500;
 }
 
 /* Responsive footer */
