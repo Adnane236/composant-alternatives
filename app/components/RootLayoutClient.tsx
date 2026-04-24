@@ -66,74 +66,13 @@ function AppShell({ children }: Props) {
       <footer className="site-footer">
         <div className="footer-glow" />
         <div className="footer-inner">
-          <div className="footer-grid">
-            {/* Brand column */}
-            <div className="footer-col footer-brand-col">
+          <div className="footer-minimal">
+            <div className="footer-minimal-brand">
               <img src={logo} alt="Versigent" className="footer-logo" />
               <p className="footer-tagline">
-                Tableau de bord industriel pour la gestion des faisceaux électriques — suivi des fils, torsades, splices et production.
+                Tableau de bord industriel After-Sales — suivi des fils, torsades, splices et production.
               </p>
-              <div className="footer-social">
-                <a href="https://www.versigent.com" target="_blank" rel="noopener noreferrer" className="footer-social-link" title="Website">
-                  🌐
-                </a>
-                <a href="mailto:contact@versigent.com" className="footer-social-link" title="Email">
-                  ✉️
-                </a>
-              </div>
             </div>
-
-            {/* Quick links */}
-            <div className="footer-col">
-              <h4 className="footer-col-title">Navigation</h4>
-              <ul className="footer-links">
-                <li><Link href="/">Dashboard</Link></li>
-                <li><Link href="/composants">Composants</Link></li>
-                <li><Link href="/alternatives">Alternatives</Link></li>
-                <li><Link href="/disponibilite">Disponibilité</Link></li>
-                <li><Link href="/import">Import</Link></li>
-              </ul>
-            </div>
-
-            {/* Modules */}
-            <div className="footer-col">
-              <h4 className="footer-col-title">Modules</h4>
-              <ul className="footer-links">
-                <li><Link href="/fils">⚡ Wire Cutting Specs</Link></li>
-                <li><Link href="/torsades">🔀 Cutting Data</Link></li>
-                <li><Link href="/splices">🔗 QC & Traceability</Link></li>
-                <li><Link href="/production">📦 Order Planning</Link></li>
-                <li><Link href="/inventaire">🔧 Crimping Dies</Link></li>
-                <li><Link href="/contacts">📋 Contacts</Link></li>
-              </ul>
-            </div>
-
-            {/* Info */}
-            <div className="footer-col">
-              <h4 className="footer-col-title">Projet</h4>
-              <ul className="footer-info-list">
-                <li>
-                  <span className="footer-info-label">Client</span>
-                  <span className="footer-info-value">JLR — L550</span>
-                </li>
-                <li>
-                  <span className="footer-info-label">Produit</span>
-                  <span className="footer-info-value">Passenger Door</span>
-                </li>
-                <li>
-                  <span className="footer-info-label">Config</span>
-                  <span className="footer-info-value">RHD / LHD</span>
-                </li>
-                <li>
-                  <span className="footer-info-label">Plateforme</span>
-                  <span className="footer-info-value">Next.js 14</span>
-                </li>
-              </ul>
-            </div>
-          </div>
-
-          <div className="footer-bottom">
-            <div className="footer-divider" />
             <div className="system-bar">
               {SYSTEM_LINKS.map(s => (
                 <button key={s.label} className="system-bar-btn" title={`Intégration ${s.label}`}>
@@ -142,13 +81,13 @@ function AppShell({ children }: Props) {
                 </button>
               ))}
             </div>
-            <div className="footer-bottom-content">
-              <span>© {new Date().getFullYear()} Versigent. Tous droits réservés.</span>
-              <a href="https://portfolio-adnane-megrini.netlify.app/" target="_blank" rel="noopener noreferrer" className="footer-dev-credit">
-                Développé par <strong>Adnane Megrini</strong>
-              </a>
-              <span className="footer-version">v0.1.0 · After-Sales</span>
-            </div>
+          </div>
+          <div className="footer-divider" />
+          <div className="footer-bottom-content">
+            <span>© {new Date().getFullYear()} Versigent. Tous droits réservés.</span>
+            <a href="https://portfolio-adnane-megrini.netlify.app/" target="_blank" rel="noopener noreferrer" className="footer-dev-credit">
+              Développé par <strong>Adnane Megrini</strong>
+            </a>
           </div>
         </div>
       </footer>
