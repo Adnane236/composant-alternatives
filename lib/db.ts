@@ -134,6 +134,7 @@ export type ProductionTracking = {
   packaging: string;
   shipment: string;
   is_shipment_plan_ok: string;
+  responsable?: string;
 };
 
 export type Contact = {
@@ -147,6 +148,43 @@ export type Contact = {
   contact_sales: string;
   destination: string;
   dhl_account: string;
+};
+
+export type Recap = {
+  id: number;
+  feuille: string;
+  oem: string;
+  jlr_pn: string;
+  famille: string;
+  original_build_date: string;
+  customer_po: string;
+  bl_number: string;
+  dn_number: string;
+  shipment_date: string;
+  qty_shipped: number;
+  destination: string;
+  notes: string;
+};
+
+
+
+export type RMAlternative = {
+  id: number;
+  original_apn: string;
+  original_material: string;
+  original_code: string;
+  original_code2: string;
+  me_proposal: string;
+  apn: string;
+  description: string;
+  pe_code: string;
+  ba: string;
+  serial_or_ni: string;
+  comment: string;
+  afm_build: string;
+  date_requested: string;
+  drawing: string;
+  requestor: string;
 };
 
 export type DashboardStats = {
@@ -248,6 +286,35 @@ export async function getProductionTracking(feuille?: string): Promise<Productio
   } catch { return DEMO_PRODUCTION; } finally { pool.close(); }
 }
 
+export async function updateProductionRow(id: number, fields: { plant_status?: string; comment?: string }): Promise<boolean> {
+  const pool = await getPool();
+  if (!pool) return false;
+  try {
+    const sets: string[] = [];
+    const req = pool.request().input('id', sql.Int, id);
+    if (fields.plant_status !== undefined) { req.input('s', sql.NVarChar, fields.plant_status); sets.push('plant_status=@s'); }
+    if (fields.comment !== undefined)      { req.input('c', sql.NVarChar, fields.comment);      sets.push('comment=@c'); }
+    if (!sets.length) return false;
+    await req.query(`UPDATE ProductionTracking SET ${sets.join(',')} WHERE id=@id`);
+    return true;
+  } catch { return false; } finally { pool.close(); }
+}
+
+export async function updateRecapRow(id: number, fields: { bl_number?: string; dn_number?: string; notes?: string }): Promise<boolean> {
+  const pool = await getPool();
+  if (!pool) return false;
+  try {
+    const sets: string[] = [];
+    const req = pool.request().input('id', sql.Int, id);
+    if (fields.bl_number !== undefined) { req.input('bl', sql.NVarChar, fields.bl_number); sets.push('bl_number=@bl'); }
+    if (fields.dn_number !== undefined) { req.input('dn', sql.NVarChar, fields.dn_number); sets.push('dn_number=@dn'); }
+    if (fields.notes !== undefined)     { req.input('n',  sql.NVarChar, fields.notes);     sets.push('notes=@n'); }
+    if (!sets.length) return false;
+    await req.query(`UPDATE Recap SET ${sets.join(',')} WHERE id=@id`);
+    return true;
+  } catch { return false; } finally { pool.close(); }
+}
+
 // ─── Contacts ─────────────────────────────────────────────────────────────────
 
 export async function getContacts(): Promise<Contact[]> {
@@ -256,6 +323,126 @@ export async function getContacts(): Promise<Contact[]> {
   try {
     return (await pool.request().query(`SELECT * FROM Contacts ORDER BY project`)).recordset;
   } catch { return DEMO_CONTACTS; } finally { pool.close(); }
+}
+
+
+
+// ─── Recap ────────────────────────────────────────────────────────────────────
+
+export async function getRecap(feuille?: string): Promise<Recap[]> {
+  const pool = await getPool();
+  if (!pool) return feuille ? DEMO_RECAP.filter(r => r.feuille === feuille) : DEMO_RECAP;
+  try {
+    const q = feuille
+      ? pool.request().input('f', sql.NVarChar, feuille).query(`SELECT * FROM Recap WHERE feuille=@f ORDER BY shipment_date DESC`)
+      : pool.request().query(`SELECT * FROM Recap ORDER BY shipment_date DESC`);
+    return (await q).recordset;
+  } catch { return DEMO_RECAP; } finally { pool.close(); }
+}
+
+// ─── RM Alternative Materiel ──────────────────────────────────────────────────
+
+export async function getRMAlternatives(): Promise<RMAlternative[]> {
+  const pool = await getPool();
+  if (!pool) return DEMO_RM;
+  try {
+    const r = await pool.request().query(`SELECT * FROM RMAlternativeMateriel ORDER BY id`);
+    return r.recordset;
+  } catch { return DEMO_RM; } finally { pool.close(); }
+}
+
+// ─── Generic table column whitelist (shared by upload + inline editing) ───────
+
+export const TABLE_COLUMNS: Record<string, string[]> = {
+  ProductionTracking: [
+    'feuille','plant','oem','jlr_pn','cpn','apn','famille','criticity_vor_bo',
+    'received_order_date','s_lead_time','needed_in_customer','plant_delivery_plan',
+    'plant_status','qty','shipped','net','comment','me_d','drawing','prg',
+    'process_of','raw_material','wires','production','validation','packaging',
+    'shipment','is_shipment_plan_ok','responsable',
+  ],
+  Fils: [
+    'famille','zone','num_drwn','num_fil','long','cable','section_fil','coml',
+    'type_isol','union_tors_a','connect_a','dpn_connect_a','acces','voie_a',
+    'terminal_a','seal_a','connect_b','dpn_connect_b','voie_b','terminal_b',
+    'seal_b','options',
+  ],
+  Torsades: [
+    'famille','zone','num_torsade','lead_code_torsade','num_fil','lead_code_fil',
+    'couleur','section','bobine','longueur_torsade','longueur_initiale',
+    'longueur_finale','longueur_libre_1','seal_1','terminal_1','longueur_libre_2',
+    'seal_2','terminal_2','pas_de_torsade','ksk_module','dpn_ksk_module',
+  ],
+  Splices: [
+    'famille','zone','splice','us_location','groupe','n_file','couleur','section',
+    'type_iso','long','cout','to_item','to_cavity','union_torsade','option',
+  ],
+  SpliceFils: [
+    'famille','splice','us','num_wire','num_wire_coupe','color','size',
+    'type_isol','cote','alpha_code','module','fna_code','dpn_isolot',
+    'section_total','configuration_clip','heatshrink',
+  ],
+  Inventaire: [
+    'type_outil','n_outil','alphab','inventory_no','localisation','terminal',
+    'type_corp','commentaire',
+  ],
+  Recap: [
+    'feuille','oem','jlr_pn','famille','original_build_date','customer_po',
+    'bl_number','dn_number','shipment_date','qty_shipped','destination','notes',
+  ],
+  Contacts: [
+    'project','contact_pcl','ship_mode','plant_responsibility','sold_to',
+    'ship_to','contact_sales','destination','dhl_account',
+  ],
+  RMAlternativeMateriel: [
+    'original_apn','original_material','original_code','original_code2','me_proposal','apn',
+    'description','pe_code','ba','serial_or_ni','comment','afm_build',
+    'date_requested','drawing','requestor',
+  ],
+};
+
+// Generic single-row update for any whitelisted table. Empty string → NULL.
+export async function updateTableRow(table: string, id: number, fields: Record<string, string>): Promise<boolean> {
+  const allowed = TABLE_COLUMNS[table];
+  if (!allowed) return false;
+  const pool = await getPool();
+  if (!pool) return false;
+  try {
+    const sets: string[] = [];
+    const req = pool.request().input('id', sql.Int, id);
+    let i = 0;
+    for (const [key, value] of Object.entries(fields)) {
+      if (!allowed.includes(key)) continue;
+      const v = (value === '' || value === undefined || value === null) ? null : String(value);
+      req.input(`p${i}`, sql.NVarChar, v);
+      sets.push(`[${key}]=@p${i}`);
+      i++;
+    }
+    if (!sets.length) return false;
+    await req.query(`UPDATE ${table} SET ${sets.join(',')} WHERE id=@id`);
+    return true;
+  } catch { return false; } finally { pool.close(); }
+}
+
+export async function updateRMAlternative(id: number, fields: Record<string, string>): Promise<boolean> {
+  const pool = await getPool();
+  if (!pool) return false;
+  try {
+    const allowed = ['original_apn','original_material','original_code','original_code2','me_proposal','apn',
+      'description','pe_code','ba','serial_or_ni','comment','afm_build','date_requested','drawing','requestor'];
+    const sets: string[] = [];
+    const req = pool.request().input('id', sql.Int, id);
+    let i = 0;
+    for (const [key, value] of Object.entries(fields)) {
+      if (!allowed.includes(key)) continue;
+      req.input(`p${i}`, sql.NVarChar, String(value ?? ''));
+      sets.push(`[${key}]=@p${i}`);
+      i++;
+    }
+    if (!sets.length) return false;
+    await req.query(`UPDATE RMAlternativeMateriel SET ${sets.join(',')} WHERE id=@id`);
+    return true;
+  } catch { return false; } finally { pool.close(); }
 }
 
 // ─── Dashboard Stats ──────────────────────────────────────────────────────────
@@ -357,6 +544,19 @@ const DEMO_PRODUCTION: ProductionTracking[] = [
   { id:5, feuille:'JLRBX540', plant:'M6 Serie', oem:'X540', jlr_pn:'02J9C34047', cpn:'N8D214N178AA', apn:'35516335', famille:'COOLING BOX FAN MHEV', criticity_vor_bo:'', received_order_date:'2026-01-29', s_lead_time:63, needed_in_customer:'2026-04-02', plant_delivery_plan:'2026-03-23', plant_status:'On Time', qty:61, shipped:0, net:-61, comment:'New', me_d:'', drawing:'', prg:'', process_of:'', raw_material:'', wires:'', production:'', validation:'', packaging:'', shipment:'', is_shipment_plan_ok:'OK' },
   { id:6, feuille:'JLRBL55X', plant:'M6 Serie', oem:'L551', jlr_pn:'LR162459', cpn:'N8D214N178AA', apn:'35516335', famille:'COOLING BOX FAN MHEV', criticity_vor_bo:'', received_order_date:'2025-03-07', s_lead_time:63, needed_in_customer:'2025-04-29', plant_delivery_plan:'2025-04-29', plant_status:'Delay', qty:268, shipped:268, net:0, comment:'Shipped 11/04/2025 – BL 78096674', me_d:'OK', drawing:'OK', prg:'OK', process_of:'OK', raw_material:'OK', wires:'OK', production:'OK', validation:'OK', packaging:'OK', shipment:'OK', is_shipment_plan_ok:'OK' },
 ];
+
+
+
+const DEMO_RECAP: Recap[] = [
+  { id:1, feuille:'JLRBL55X', oem:'L551',    jlr_pn:'LR162459',     famille:'COOLING BOX FAN MHEV', original_build_date:'2019-09-27', customer_po:'4532575718', bl_number:'78096674', dn_number:'9000123456', shipment_date:'2025-04-11', qty_shipped:268, destination:'Coventry', notes:'Shipped on time' },
+  { id:2, feuille:'JLRKSK',  oem:'JLR KSK',  jlr_pn:'K6D214J010AA', famille:'MEGA L551',            original_build_date:'2022-11-16', customer_po:'4532499007', bl_number:'78102341', dn_number:'9000234567', shipment_date:'2025-03-11', qty_shipped:120, destination:'Coventry', notes:'' },
+  { id:3, feuille:'JLRKSK',  oem:'JLR KSK',  jlr_pn:'LK7214J010AA', famille:'MEGA L550',            original_build_date:'2023-09-19', customer_po:'4532340897', bl_number:'78109912', dn_number:'9000345678', shipment_date:'2026-03-26', qty_shipped:38,  destination:'Coventry', notes:'Partial shipment' },
+  { id:4, feuille:'MFA',     oem:'MFA',       jlr_pn:'PK7214J010AA', famille:'',                     original_build_date:'2019-09-19', customer_po:'4531524405', bl_number:'78115003', dn_number:'9000456789', shipment_date:'2026-03-26', qty_shipped:300, destination:'France',   notes:'' },
+  { id:5, feuille:'JLRKSK',  oem:'JLR KSK',  jlr_pn:'PY7214J010AA', famille:'MEGA L551',            original_build_date:'2023-04-19', customer_po:'4533024405', bl_number:'78120558', dn_number:'9000567890', shipment_date:'2026-02-04', qty_shipped:60,  destination:'Coventry', notes:'' },
+  { id:6, feuille:'JLRBL55X',oem:'L551',      jlr_pn:'R6D214400AA',  famille:'IP L551',              original_build_date:'2025-06-08', customer_po:'4532530398', bl_number:'78131221', dn_number:'9000678901', shipment_date:'2026-03-24', qty_shipped:1,   destination:'Coventry', notes:'Urgent VOR' },
+];
+
+const DEMO_RM: RMAlternative[] = [];
 
 const DEMO_CONTACTS: Contact[] = [
   { id:1, project:'RSA', contact_pcl:'Uryga, Agnieszka', ship_mode:'DHL', plant_responsibility:'M1', sold_to:'115484', ship_to:'765077', contact_sales:'by tools', destination:'France', dhl_account:'' },

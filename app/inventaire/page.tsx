@@ -2,8 +2,21 @@
 
 import { useEffect, useState } from 'react';
 import type { OutilInventaire } from '../../lib/db';
+import { rowMatches } from '../../lib/search';
+import { EditableTable, type Column } from '../components/EditableTable';
 
 const LOCATIONS = ['Toutes', 'Rack01-A', 'Rack01-B', 'Rack02-A', 'Rack02-B'];
+
+const COLUMNS: Column[] = [
+  { key: 'inventory_no', label: 'Inventory No', mono: true },
+  { key: 'type_outil', label: 'Type' },
+  { key: 'n_outil', label: 'N° Outil', mono: true },
+  { key: 'alphab', label: 'Alphab.' },
+  { key: 'localisation', label: 'Localisation' },
+  { key: 'terminal', label: 'Terminal', mono: true },
+  { key: 'type_corp', label: 'Type Corp' },
+  { key: 'commentaire', label: 'Commentaire' },
+];
 
 export default function InventairePage() {
   const [outils, setOutils] = useState<OutilInventaire[]>([]);
@@ -21,12 +34,13 @@ export default function InventairePage() {
       .catch(() => setLoading(false));
   }, [localisation]);
 
+  function updateLocal(id: number, key: string, value: string) {
+    setOutils(prev => prev.map(o => o.id === id ? { ...o, [key]: value } : o));
+  }
+
   const filtered = outils.filter(o => {
     if (typeFilter !== 'Tous' && o.type_outil !== typeFilter) return false;
-    if (search && !o.n_outil.toLowerCase().includes(search.toLowerCase()) &&
-        !o.inventory_no?.toLowerCase().includes(search.toLowerCase()) &&
-        !o.alphab?.toLowerCase().includes(search.toLowerCase())) return false;
-    return true;
+    return rowMatches(o, search);
   });
 
   const typeG = outils.filter(o => o.type_outil === 'G').length;
@@ -36,8 +50,8 @@ export default function InventairePage() {
     <main className="container">
       <div className="section-heading">
         <div>
-          <h2>Crimping Dies</h2>
-          <p>M6 Wk02-4 — Total: <strong style={{ color: '#f5c86b' }}>{outils.length}</strong> outils</p>
+          <h2>Crimping Dies &amp; Alternatives</h2>
+          <p>M6 Wk02-4 — Total: <strong style={{ color: '#f5c86b' }}>{outils.length}</strong> outils · cliquer une ligne pour modifier</p>
         </div>
       </div>
 
@@ -77,46 +91,13 @@ export default function InventairePage() {
       {loading ? (
         <div className="loading-state">Chargement inventaire...</div>
       ) : (
-        <section className="card table-wrapper">
-          <table className="table table-dense">
-            <thead>
-              <tr>
-                <th>Type</th>
-                <th>N° Outil</th>
-                <th>Alphab.</th>
-                <th>Inventory No</th>
-                <th>Localisation</th>
-                <th>Terminal</th>
-                <th>Type Corp</th>
-                <th>Commentaire</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.map(o => (
-                <tr key={o.id}>
-                  <td>
-                    <span style={{
-                      display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-                      width: 28, height: 28, borderRadius: 8, fontWeight: 700, fontSize: '0.85rem',
-                      background: o.type_outil === 'G' ? 'rgba(71,215,255,0.15)' : 'rgba(255,161,47,0.15)',
-                      color: o.type_outil === 'G' ? '#47d7ff' : '#ffa12f',
-                    }}>{o.type_outil}</span>
-                  </td>
-                  <td><span className="code-chip">{o.n_outil}</span></td>
-                  <td style={{ color: '#f5c86b', fontWeight: 600 }}>{o.alphab}</td>
-                  <td className="mono-sm">{o.inventory_no}</td>
-                  <td>{o.localisation}</td>
-                  <td className="mono-sm">{o.terminal || '—'}</td>
-                  <td>{o.type_corp || '—'}</td>
-                  <td style={{ color: '#82a3dc', fontSize: '0.85rem' }}>{o.commentaire || '—'}</td>
-                </tr>
-              ))}
-              {filtered.length === 0 && (
-                <tr><td colSpan={8} style={{ textAlign: 'center', color: '#82a3dc', padding: '32px' }}>Aucun outil trouvé</td></tr>
-              )}
-            </tbody>
-          </table>
-        </section>
+        <EditableTable
+          rows={filtered}
+          columns={COLUMNS}
+          apiPath="/api/inventaire"
+          onChange={updateLocal}
+          emptyLabel="Aucun outil trouvé"
+        />
       )}
     </main>
   );

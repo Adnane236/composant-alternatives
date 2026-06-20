@@ -2,8 +2,28 @@
 
 import { useEffect, useState } from 'react';
 import type { Splice } from '../../lib/db';
+import { rowMatches } from '../../lib/search';
+import { EditableTable, type Column } from '../components/EditableTable';
 
 const FAMILIES = ['Toutes', 'PASSENGER DOOR RHD', 'PASSENGER DOOR LHD'];
+
+const COLUMNS: Column[] = [
+  { key: 'splice', label: 'Splice', mono: true },
+  { key: 'famille', label: 'Famille' },
+  { key: 'zone', label: 'Zone' },
+  { key: 'us_location', label: 'US Location' },
+  { key: 'groupe', label: 'Groupe' },
+  { key: 'n_file', label: 'N° Fils' },
+  { key: 'couleur', label: 'Couleur' },
+  { key: 'section', label: 'Section' },
+  { key: 'type_iso', label: 'Type Iso' },
+  { key: 'long', label: 'Long (mm)' },
+  { key: 'cout', label: 'Coût' },
+  { key: 'to_item', label: 'To Item' },
+  { key: 'to_cavity', label: 'To Cavity' },
+  { key: 'union_torsade', label: 'Union Torsade' },
+  { key: 'option', label: 'Option' },
+];
 
 export default function SplicesPage() {
   const [splices, setSplices] = useState<Splice[]>([]);
@@ -20,19 +40,18 @@ export default function SplicesPage() {
       .catch(() => setLoading(false));
   }, [famille]);
 
-  const filtered = splices.filter(s =>
-    !search || s.splice.toLowerCase().includes(search.toLowerCase()) ||
-    s.n_file?.toLowerCase().includes(search.toLowerCase()) ||
-    s.to_item?.toLowerCase().includes(search.toLowerCase()) ||
-    s.option?.toLowerCase().includes(search.toLowerCase())
-  );
+  function updateLocal(id: number, key: string, value: string) {
+    setSplices(prev => prev.map(s => s.id === id ? { ...s, [key]: value } : s));
+  }
+
+  const filtered = splices.filter(s => rowMatches(s, search));
 
   return (
     <main className="container">
       <div className="section-heading">
         <div>
           <h2>QC & Traceability</h2>
-          <p>Points de jonction — {splices.length} splices chargés</p>
+          <p>Points de jonction — {splices.length} splices chargés · cliquer une ligne pour modifier</p>
         </div>
       </div>
 
@@ -50,45 +69,13 @@ export default function SplicesPage() {
       {loading ? (
         <div className="loading-state">Chargement des splices...</div>
       ) : (
-        <section className="card table-wrapper">
-          <table className="table table-dense">
-            <thead>
-              <tr>
-                <th>Splice</th>
-                <th>N° Fils</th>
-                <th>Couleur</th>
-                <th>Section</th>
-                <th>Type Iso</th>
-                <th>Long (mm)</th>
-                <th>To Item</th>
-                <th>To Cavity</th>
-                <th>Union Torsade</th>
-                <th>Option</th>
-                <th>Famille</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.map(s => (
-                <tr key={s.id}>
-                  <td><span className="code-chip">{s.splice}</span></td>
-                  <td style={{ fontSize: '0.8rem', maxWidth: 180, wordBreak: 'break-word' }}>{s.n_file}</td>
-                  <td>{s.couleur}</td>
-                  <td className="num-cell">{s.section}</td>
-                  <td>{s.type_iso}</td>
-                  <td className="num-cell">{s.long || '—'}</td>
-                  <td><span className="connect-chip">{s.to_item}</span></td>
-                  <td className="num-cell">{s.to_cavity || '—'}</td>
-                  <td>{s.union_torsade || '—'}</td>
-                  <td>{s.option ? <span className={`option-badge opt-${s.option.toLowerCase().replace(/[^a-z]/g,'')}`}>{s.option}</span> : '—'}</td>
-                  <td><span className="famille-badge">{s.famille.replace('PASSENGER DOOR ','')}</span></td>
-                </tr>
-              ))}
-              {filtered.length === 0 && (
-                <tr><td colSpan={11} style={{ textAlign:'center', color:'#82a3dc', padding:'32px' }}>Aucun splice trouvé</td></tr>
-              )}
-            </tbody>
-          </table>
-        </section>
+        <EditableTable
+          rows={filtered}
+          columns={COLUMNS}
+          apiPath="/api/splices"
+          onChange={updateLocal}
+          emptyLabel="Aucun splice trouvé"
+        />
       )}
     </main>
   );

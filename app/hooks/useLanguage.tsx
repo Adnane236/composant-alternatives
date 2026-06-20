@@ -5,7 +5,7 @@ import { createContext, ReactNode, useContext, useMemo, useState } from 'react';
 type Translations = {
   portfolio_tech: string;
   composants: string;
-  alternatives: string;
+  alternatives: string;  
   disponibilite: string;
   importer: string;
   search: string;

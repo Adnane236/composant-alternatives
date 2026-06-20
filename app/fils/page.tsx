@@ -2,8 +2,35 @@
 
 import { useEffect, useState } from 'react';
 import type { Fil } from '../../lib/db';
+import { rowMatches } from '../../lib/search';
+import { EditableTable, type Column } from '../components/EditableTable';
 
 const FAMILIES = ['Toutes', 'PASSENGER DOOR RHD', 'PASSENGER DOOR LHD'];
+
+const COLUMNS: Column[] = [
+  { key: 'num_fil', label: 'Num Fil', mono: true },
+  { key: 'famille', label: 'Famille' },
+  { key: 'zone', label: 'Zone' },
+  { key: 'num_drwn', label: 'Num Drwn', mono: true },
+  { key: 'long', label: 'Long (mm)' },
+  { key: 'cable', label: 'Cable', mono: true },
+  { key: 'section_fil', label: 'Section' },
+  { key: 'coml', label: 'Coml' },
+  { key: 'type_isol', label: 'Type Isol' },
+  { key: 'union_tors_a', label: 'Union Tors A' },
+  { key: 'connect_a', label: 'Connect A' },
+  { key: 'dpn_connect_a', label: 'DPN Connect A', mono: true },
+  { key: 'acces', label: 'Accès' },
+  { key: 'voie_a', label: 'Voie A' },
+  { key: 'terminal_a', label: 'Terminal A', mono: true },
+  { key: 'seal_a', label: 'Seal A' },
+  { key: 'connect_b', label: 'Connect B' },
+  { key: 'dpn_connect_b', label: 'DPN Connect B', mono: true },
+  { key: 'voie_b', label: 'Voie B' },
+  { key: 'terminal_b', label: 'Terminal B', mono: true },
+  { key: 'seal_b', label: 'Seal B' },
+  { key: 'options', label: 'Options' },
+];
 
 export default function FilsPage() {
   const [fils, setFils] = useState<Fil[]>([]);
@@ -20,19 +47,18 @@ export default function FilsPage() {
       .catch(() => setLoading(false));
   }, [famille]);
 
-  const filtered = fils.filter(f =>
-    !search || f.num_fil.toLowerCase().includes(search.toLowerCase()) ||
-    f.connect_a?.toLowerCase().includes(search.toLowerCase()) ||
-    f.connect_b?.toLowerCase().includes(search.toLowerCase()) ||
-    f.options?.toLowerCase().includes(search.toLowerCase())
-  );
+  function updateLocal(id: number, key: string, value: string) {
+    setFils(prev => prev.map(f => f.id === id ? { ...f, [key]: value } : f));
+  }
+
+  const filtered = fils.filter(f => rowMatches(f, search));
 
   return (
     <main className="container">
       <div className="section-heading">
         <div>
           <h2>Wire Cutting Specs</h2>
-          <p>Données de câblage — {fils.length} fils chargés</p>
+          <p>Données de câblage — {fils.length} fils chargés · cliquer une ligne pour modifier</p>
         </div>
       </div>
 
@@ -59,47 +85,13 @@ export default function FilsPage() {
       {loading ? (
         <div className="loading-state">Chargement des fils...</div>
       ) : (
-        <section className="card table-wrapper">
-          <table className="table table-dense">
-            <thead>
-              <tr>
-                <th>Num_Fil</th>
-                <th>Long (mm)</th>
-                <th>Section</th>
-                <th>Type Isol</th>
-                <th>Connect A</th>
-                <th>Voie A</th>
-                <th>Terminal A</th>
-                <th>Connect B</th>
-                <th>Voie B</th>
-                <th>Terminal B</th>
-                <th>Options</th>
-                <th>Zone</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.map(f => (
-                <tr key={f.id}>
-                  <td><span className="code-chip">{f.num_fil}</span></td>
-                  <td className="num-cell">{f.long ?? '—'}</td>
-                  <td className="num-cell">{f.section_fil ?? '—'}</td>
-                  <td>{f.type_isol}</td>
-                  <td><span className="connect-chip">{f.connect_a}</span></td>
-                  <td className="num-cell">{f.voie_a}</td>
-                  <td className="mono-sm">{f.terminal_a}</td>
-                  <td><span className="connect-chip">{f.connect_b}</span></td>
-                  <td className="num-cell">{f.voie_b}</td>
-                  <td className="mono-sm">{f.terminal_b}</td>
-                  <td>{f.options ? <span className={`option-badge opt-${f.options.toLowerCase().replace(/[^a-z]/g,'')}`}>{f.options}</span> : '—'}</td>
-                  <td className="zone-cell">{f.zone}</td>
-                </tr>
-              ))}
-              {filtered.length === 0 && (
-                <tr><td colSpan={12} style={{ textAlign: 'center', color: '#82a3dc', padding: '32px' }}>Aucun fil trouvé</td></tr>
-              )}
-            </tbody>
-          </table>
-        </section>
+        <EditableTable
+          rows={filtered}
+          columns={COLUMNS}
+          apiPath="/api/fils"
+          onChange={updateLocal}
+          emptyLabel="Aucun fil trouvé"
+        />
       )}
     </main>
   );

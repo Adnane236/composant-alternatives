@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import type { ProductionTracking } from '../../lib/db';
+import { rowMatches } from '../../lib/search';
 
 const FEUILLES = ['Toutes', 'MFA', 'JLRKSK', 'JLRBL55X', 'JLRBX540', 'JLRDOORServicekits'];
 const STATUS_OPTIONS = ['On Time', 'Delay', 'Missing', 'Pending'];
@@ -46,11 +47,13 @@ function EditableCell({
   value,
   placeholder,
   onChange,
+  onBlur,
   width,
 }: {
   value: string;
   placeholder: string;
   onChange: (v: string) => void;
+  onBlur?: (v: string) => void;
   width?: number;
 }) {
   return (
@@ -58,6 +61,7 @@ function EditableCell({
       value={value}
       placeholder={placeholder}
       onChange={e => onChange(e.target.value)}
+      onBlur={e => onBlur?.(e.target.value)}
       style={{
         background: 'rgba(255,255,255,0.04)',
         border: '1px solid rgba(130,163,220,0.2)',
@@ -79,10 +83,17 @@ export default function ProductionPage() {
   const [statusFilter, setStatusFilter] = useState('Toutes');
   const [search, setSearch] = useState('');
 
-  // Local overrides (not persisted to DB — front-end only)
   const [statusOverrides, setStatusOverrides] = useState<Record<number, string>>({});
   const [responsables, setResponsables] = useState<Record<number, string>>({});
   const [commentaires, setCommentaires] = useState<Record<number, string>>({});
+
+  async function saveField(id: number, fields: { plant_status?: string; comment?: string; responsable?: string }) {
+    await fetch('/api/production', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id, ...fields }),
+    }).catch(() => {});
+  }
 
   useEffect(() => {
     setLoading(true);
@@ -95,16 +106,12 @@ export default function ProductionPage() {
 
   const getStatus = (r: ProductionTracking) => statusOverrides[r.id] ?? r.plant_status ?? '';
   const getComment = (r: ProductionTracking) => commentaires[r.id] ?? r.comment ?? '';
+  const getResponsable = (r: ProductionTracking) => responsables[r.id] ?? r.responsable ?? '';
 
   const filtered = rows.filter(r => {
     const status = getStatus(r);
     if (statusFilter !== 'Toutes' && status !== statusFilter) return false;
-    const comment = getComment(r);
-    if (search && !r.jlr_pn?.toLowerCase().includes(search.toLowerCase()) &&
-        !r.apn?.toLowerCase().includes(search.toLowerCase()) &&
-        !r.famille?.toLowerCase().includes(search.toLowerCase()) &&
-        !comment.toLowerCase().includes(search.toLowerCase())) return false;
-    return true;
+    return rowMatches(r, search, [status, getComment(r), getResponsable(r)]);
   });
 
   const onTime = rows.filter(r => getStatus(r) === 'On Time').length;
@@ -187,7 +194,7 @@ export default function ProductionPage() {
                 <th>Ship.</th>
                 <th>Plan OK</th>
                 <th style={{ minWidth: 150 }}>Responsable</th>
-                <th style={{ minWidth: 200 }}>Commentaire absence</th>
+                <th style={{ minWidth: 200 }}>Commentaire</th>
               </tr>
             </thead>
             <tbody>
@@ -216,7 +223,10 @@ export default function ProductionPage() {
                     <td>
                       <StatusSelect
                         value={status}
-                        onChange={v => setStatusOverrides(prev => ({ ...prev, [r.id]: v }))}
+                        onChange={v => {
+                          setStatusOverrides(prev => ({ ...prev, [r.id]: v }));
+                          saveField(r.id, { plant_status: v });
+                        }}
                       />
                     </td>
                     <td className="num-cell">{r.qty}</td>
@@ -231,17 +241,19 @@ export default function ProductionPage() {
                     <td style={{ textAlign: 'center' }}><OkNok val={r.is_shipment_plan_ok} /></td>
                     <td>
                       <EditableCell
-                        value={responsables[r.id] ?? ''}
+                        value={getResponsable(r)}
                         placeholder="Nom responsable..."
                         onChange={v => setResponsables(prev => ({ ...prev, [r.id]: v }))}
+                        onBlur={v => saveField(r.id, { responsable: v })}
                         width={140}
                       />
                     </td>
                     <td>
                       <EditableCell
                         value={getComment(r)}
-                        placeholder="Justifier l'absence du composant..."
+                        placeholder="Commentaire..."
                         onChange={v => setCommentaires(prev => ({ ...prev, [r.id]: v }))}
+                        onBlur={v => saveField(r.id, { comment: v })}
                         width={190}
                       />
                     </td>

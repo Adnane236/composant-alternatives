@@ -1,11 +1,4 @@
--- Schéma base de données pour la gestion des faisceaux électriques APTIV/JLR
--- Projet : L550 - PASSENGER DOOR RHD/LHD
-
-CREATE DATABASE HarnessDB;
-GO
-USE HarnessDB;
-GO
-
+﻿
 -- ─────────────────────────────────────────────────────────
 -- TABLE : Fils (Simple Wires)
 -- Source : Feuille "Simple_Wires_RHD/LHD"
@@ -264,26 +257,6 @@ CREATE TABLE MeetingEngagements (
   type_engagement   NVARCHAR(100),
   heure             DATETIME,
   CONSTRAINT FK_MeetingEngagements_Meeting FOREIGN KEY (meeting_id) REFERENCES MeetingReports(id)
-);
-GO
-
--- ─────────────────────────────────────────────────────────
--- TABLE : RMAlternativeMateriel (matériaux et composants alternatifs RM)
--- ─────────────────────────────────────────────────────────
-CREATE TABLE RMAlternativeMateriel (
-  id              INT IDENTITY PRIMARY KEY,
-  code_piece      NVARCHAR(100) NOT NULL,
-  designation_fr  NVARCHAR(300),
-  designation_en  NVARCHAR(300),
-  fournisseur     NVARCHAR(200),
-  cout_unitaire   DECIMAL(10,2),
-  delai_livraison NVARCHAR(50),
-  stock           INT DEFAULT 0,
-  materiaux       NVARCHAR(500),   -- pipe-separated list
-  proprietes      NVARCHAR(1000),  -- pipe-separated list
-  alternatives    NVARCHAR(500),   -- pipe-separated list
-  notes           NVARCHAR(1000),
-  created_at      DATETIME DEFAULT GETDATE()
 );
 GO
 

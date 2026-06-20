@@ -9,8 +9,10 @@ const NAV_CARDS = [
   { href: '/torsades',    icon: '🔀', label: 'Cutting Data',       desc: 'Fiches de préparation',     color: '#47d7ff' },
   { href: '/splices',     icon: '🔗', label: 'QC & Traceability',  desc: 'Points de jonction',        color: '#f5c86b' },
   { href: '/production',  icon: '📦', label: 'Order Planning',     desc: 'Suivi commandes/livraisons',color: '#4bc292' },
-  { href: '/inventaire',  icon: '🔧', label: 'Crimping Dies',      desc: 'Outils process M6',         color: '#ffa12f' },
-  { href: '/contacts',    icon: '📋', label: 'Contacts',           desc: 'PC&L par projet',           color: '#a78bfa' },
+  { href: '/inventaire',  icon: '🔧', label: 'Crimping Dies & Alternatives', desc: 'Outils process M6',  color: '#ffa12f' },
+  { href: '/recap',       icon: '📄', label: 'Récap Expéditions',  desc: 'BL / DN / Customer PO',     color: '#f472b6' },
+  { href: '/rm-alternative-materiel', icon: '⚙️', label: 'RM Alternatives',         desc: 'Matériaux alternatifs RM', color: '#8b5cf6' },
+  { href: '/upload',      icon: '⬆', label: 'Upload Data',        desc: 'Import Excel / PPTX → DB',  color: '#a78bfa' },
 ];
 
 export default function HomePage() {

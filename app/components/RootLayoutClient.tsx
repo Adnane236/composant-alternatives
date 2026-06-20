@@ -12,8 +12,10 @@ const NAV_LINKS = [
   { href: '/torsades',    label: 'Cutting Data' },
   { href: '/splices',     label: 'QC & Traceability' },
   { href: '/production',  label: 'Order Planning' },
-  { href: '/inventaire',  label: 'Crimping Dies' },
-  { href: '/contacts',    label: 'Contacts' },
+  { href: '/inventaire',  label: 'Crimping Dies & Alternatives' },
+  { href: '/recap',       label: 'Récap' },
+  { href: '/rm-alternative-materiel', label: 'RM Alternatives' },
+  { href: '/upload',      label: 'Upload Data' },
 ];
 
 const SYSTEM_LINKS = [

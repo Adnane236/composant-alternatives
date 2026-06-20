@@ -182,13 +182,18 @@ select {
   display: flex;
   align-items: center;
   flex-wrap: nowrap;
-  gap: 4px;
+  gap: 2px;
+  overflow-x: auto;
+  scrollbar-width: none;
 }
+
+.site-nav::-webkit-scrollbar { display: none; }
 
 .site-nav a {
   color: #ebf1ff;
-  font-size: 0.95rem;
+  font-size: 0.83rem;
   transition: color 0.2s ease;
+  white-space: nowrap;
 }
 
 .site-nav a:hover {
@@ -808,9 +813,10 @@ select {
 /* ── Nav links ─────────────────────────────────────────── */
 .nav-link {
   color: #b0c4e8;
-  font-size: 0.92rem;
-  padding: 7px 12px;
-  border-radius: 10px;
+  font-size: 0.83rem;
+  padding: 5px 9px;
+  border-radius: 8px;
+  white-space: nowrap;
   transition: background 0.18s, color 0.18s;
 }
 .nav-link:hover {
