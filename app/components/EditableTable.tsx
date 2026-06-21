@@ -31,10 +31,10 @@ export function EditableTable({
   }
 
   return (
-    <div style={{ overflowX: 'auto' }}>
-      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.82rem' }}>
+    <div style={{ overflowX: 'auto', border: '1px solid rgba(150,188,218,0.12)', borderRadius: 2, background: '#0a1018' }}>
+      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.8rem', fontFamily: "'IBM Plex Mono', ui-monospace, monospace" }}>
         <thead>
-          <tr style={{ background: 'rgba(63,140,255,0.1)', borderBottom: '2px solid rgba(63,140,255,0.3)' }}>
+          <tr style={{ background: 'rgba(0,0,0,0.25)', borderBottom: '1px solid rgba(150,188,218,0.22)' }}>
             {columns.map(c => <th key={c.key} style={th}>{c.label}</th>)}
           </tr>
         </thead>
@@ -46,9 +46,9 @@ export function EditableTable({
                 <tr
                   onClick={() => setExpanded(isOpen ? null : r.id)}
                   style={{
-                    borderBottom: '1px solid rgba(255,255,255,0.07)',
+                    borderBottom: '1px solid rgba(150,188,218,0.09)',
                     cursor: 'pointer',
-                    background: isOpen ? 'rgba(63,140,255,0.07)' : 'transparent',
+                    background: isOpen ? 'rgba(90,209,230,0.06)' : 'transparent',
                     transition: 'background 0.15s',
                   }}
                 >
@@ -58,27 +58,26 @@ export function EditableTable({
                     return (
                       <td key={c.key} style={{ ...td, maxWidth: 200 }}>
                         <span style={{
-                          color: ci === 0 ? '#e5ecff' : '#b8c5d6',
-                          fontFamily: c.mono ? 'monospace' : undefined,
+                          color: ci === 0 ? '#5ad1e6' : '#a7b7c6',
                           fontWeight: ci === 0 ? 600 : 400,
-                          fontSize: c.mono ? '0.78rem' : undefined,
+                          fontSize: '0.78rem',
                           overflow: 'hidden',
                           textOverflow: 'ellipsis',
                           whiteSpace: 'nowrap',
                           display: 'block',
                         }}>
-                          {val || <span style={{ color: '#4a6080' }}>—</span>}
+                          {val || <span style={{ color: '#485768' }}>—</span>}
                         </span>
                       </td>
                     );
                   })}
                 </tr>
                 {isOpen && (
-                  <tr style={{ background: 'rgba(63,140,255,0.04)' }}>
-                    <td colSpan={columns.length} style={{ padding: '20px 24px', borderBottom: '2px solid rgba(63,140,255,0.25)' }}
+                  <tr style={{ background: 'rgba(90,209,230,0.03)' }}>
+                    <td colSpan={columns.length} style={{ padding: '20px 24px', borderBottom: '1px solid rgba(90,209,230,0.25)' }}
                         onClick={e => e.stopPropagation()}>
-                      <div style={{ fontSize: '0.75rem', color: '#3f8cff', fontWeight: 600, marginBottom: 14, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-                        Modifier les champs — cliquer hors du champ pour sauvegarder
+                      <div style={{ fontSize: '0.7rem', color: '#5ad1e6', fontWeight: 500, marginBottom: 14, textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+                        ◇ Modifier les champs — cliquer hors du champ pour sauvegarder
                       </div>
                       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 12 }}>
                         {columns.map(c => (
@@ -98,7 +97,7 @@ export function EditableTable({
             );
           })}
           {rows.length === 0 && (
-            <tr><td colSpan={columns.length} style={{ textAlign: 'center', color: '#82a3dc', padding: '32px' }}>{emptyLabel}</td></tr>
+            <tr><td colSpan={columns.length} style={{ textAlign: 'center', color: '#6f8090', padding: '32px', fontFamily: "'IBM Plex Mono', ui-monospace, monospace", letterSpacing: '0.06em' }}>{emptyLabel}</td></tr>
           )}
         </tbody>
       </table>
@@ -124,9 +123,9 @@ function EditField({ label, value, mono, onSave }: { label: string; value: strin
 
   return (
     <div>
-      <div style={{ fontSize: '0.72rem', color: '#82a3dc', marginBottom: 4, display: 'flex', gap: 6, alignItems: 'center' }}>
+      <div style={{ fontSize: '0.68rem', color: '#6f8090', marginBottom: 4, display: 'flex', gap: 6, alignItems: 'center', fontFamily: "'IBM Plex Mono', ui-monospace, monospace", textTransform: 'uppercase', letterSpacing: '0.06em' }}>
         {label}
-        {saved && <span style={{ color: '#4bc292', fontSize: '0.68rem' }}>✓ sauvegardé</span>}
+        {saved && <span style={{ color: '#5bd6a0', fontSize: '0.66rem' }}>✓ sauvegardé</span>}
       </div>
       <input
         value={localVal}
@@ -135,13 +134,13 @@ function EditField({ label, value, mono, onSave }: { label: string; value: strin
         placeholder={`Entrer ${label.toLowerCase()}...`}
         style={{
           width: '100%',
-          background: 'rgba(11,21,44,0.8)',
-          border: `1px solid ${dirty ? 'rgba(63,140,255,0.5)' : 'rgba(255,255,255,0.1)'}`,
-          borderRadius: 6,
-          color: '#e5ecff',
-          padding: '6px 10px',
-          fontSize: '0.82rem',
-          fontFamily: mono ? 'monospace' : undefined,
+          background: '#0a1018',
+          border: `1px solid ${dirty ? '#5ad1e6' : 'rgba(150,188,218,0.12)'}`,
+          borderRadius: 2,
+          color: '#d8e3ee',
+          padding: '7px 10px',
+          fontSize: '0.8rem',
+          fontFamily: "'IBM Plex Mono', ui-monospace, monospace",
           outline: 'none',
           boxSizing: 'border-box',
         }}
@@ -151,15 +150,17 @@ function EditField({ label, value, mono, onSave }: { label: string; value: strin
 }
 
 const th: React.CSSProperties = {
-  padding: '10px 12px',
+  padding: '9px 12px',
   textAlign: 'left',
-  color: '#82a3dc',
-  fontWeight: 600,
-  fontSize: '0.78rem',
+  color: '#6f8090',
+  fontWeight: 500,
+  fontSize: '0.66rem',
+  letterSpacing: '0.09em',
+  textTransform: 'uppercase',
   whiteSpace: 'nowrap',
 };
 
 const td: React.CSSProperties = {
-  padding: '9px 12px',
+  padding: '8px 12px',
   verticalAlign: 'middle',
 };
