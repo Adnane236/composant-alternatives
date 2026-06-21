@@ -312,17 +312,17 @@ export default function UploadPage() {
           onDrop={handleDrop}
           onClick={() => inputRef.current?.click()}
           style={{
-            border: `2px dashed ${dragOver ? '#f5c86b' : 'rgba(130,163,220,0.3)'}`,
-            borderRadius: 24,
+            border: `1px dashed ${dragOver ? '#5ad1e6' : 'rgba(150,188,218,0.25)'}`,
+            borderRadius: 2,
             padding: '60px 40px',
             textAlign: 'center',
             cursor: 'pointer',
-            background: dragOver ? 'rgba(245,200,107,0.05)' : 'rgba(11,21,44,0.6)',
+            background: dragOver ? 'rgba(90,209,230,0.05)' : 'rgba(10,16,24,0.6)',
             transition: 'all 0.2s',
             marginBottom: 28,
           }}
         >
-          <div style={{ fontSize: '3rem', marginBottom: 16 }}>⬆</div>
+          <div style={{ fontSize: '2.4rem', marginBottom: 16, color: '#5ad1e6', fontFamily: "'IBM Plex Mono', monospace" }}>↑</div>
           <div style={{ fontSize: '1.1rem', color: '#c3d4ee', fontWeight: 600, marginBottom: 8 }}>
             Glisser-déposer votre fichier ici
           </div>

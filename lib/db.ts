@@ -1,4 +1,4 @@
-import sql from 'mssql';
+import { Pool } from 'pg';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -198,131 +198,148 @@ export type DashboardStats = {
   families: string[];
 };
 
-// ─── Config ───────────────────────────────────────────────────────────────────
+// ─── Connection pool (PostgreSQL) ───────────────────────────────────────────────
+// One cached Pool per process; the globalThis cache survives Next.js dev hot-reloads
+// so we don't leak pools. No DATABASE_URL → getPool() returns null and every query
+// falls back to its DEMO_* dataset.
+//
+// TLS is verified by default (Neon / Supabase / Azure use publicly-trusted certs).
+// Override only when you must:  PGSSL=disable    → no TLS (local Postgres)
+//                               PGSSL=no-verify  → TLS without cert verification
+//                                                  (self-signed; understand the risk)
 
-const getConfig = () => {
-  const { SQL_SERVER, SQL_DATABASE, SQL_USER, SQL_PASSWORD, SQL_PORT } = process.env;
-  if (!SQL_SERVER || !SQL_DATABASE || !SQL_USER || !SQL_PASSWORD) return null;
-  return {
-    server: SQL_SERVER,
-    database: SQL_DATABASE,
-    authentication: { type: 'default' as const, options: { userName: SQL_USER, password: SQL_PASSWORD } },
-    options: { encrypt: false, trustServerCertificate: true, port: Number(SQL_PORT || 1433), enableArithAbort: true },
-  };
-};
+const _g = globalThis as unknown as { __pgPool?: Pool | null };
 
-async function getPool() {
-  const config = getConfig();
-  if (!config) return null;
-  try {
-    return await sql.connect(config);
-  } catch {
+function getPool(): Pool | null {
+  if (_g.__pgPool !== undefined) return _g.__pgPool;
+  const connectionString = process.env.DATABASE_URL;
+  if (!connectionString) {
+    _g.__pgPool = null;
     return null;
   }
+  const pgssl = process.env.PGSSL;
+  const pool = new Pool({
+    connectionString,
+    ssl:
+      pgssl === 'disable'   ? false :
+      pgssl === 'no-verify' ? { rejectUnauthorized: false } :
+      { rejectUnauthorized: true },
+    max: 5,
+    idleTimeoutMillis: 30_000,
+    connectionTimeoutMillis: 10_000,
+  });
+  // An idle-client error must never crash the process — queries fall back to DEMO.
+  pool.on('error', () => {});
+  _g.__pgPool = pool;
+  return pool;
 }
 
 // ─── Fils ─────────────────────────────────────────────────────────────────────
 
 export async function getFils(famille?: string): Promise<Fil[]> {
-  const pool = await getPool();
+  const pool = getPool();
   if (!pool) return DEMO_FILS;
   try {
-    const q = famille
-      ? pool.request().input('f', sql.NVarChar, famille).query(`SELECT * FROM Fils WHERE famille=@f ORDER BY num_fil`)
-      : pool.request().query(`SELECT * FROM Fils ORDER BY famille, num_fil`);
-    return (await q).recordset;
-  } catch { return DEMO_FILS; } finally { pool.close(); }
+    const res = famille
+      ? await pool.query('SELECT * FROM "Fils" WHERE famille=$1 ORDER BY num_fil', [famille])
+      : await pool.query('SELECT * FROM "Fils" ORDER BY famille, num_fil');
+    return res.rows;
+  } catch { return DEMO_FILS; }
 }
 
 // ─── Torsades ─────────────────────────────────────────────────────────────────
 
 export async function getTorsades(famille?: string): Promise<Torsade[]> {
-  const pool = await getPool();
+  const pool = getPool();
   if (!pool) return DEMO_TORSADES;
   try {
-    const q = famille
-      ? pool.request().input('f', sql.NVarChar, famille).query(`SELECT * FROM Torsades WHERE famille=@f ORDER BY num_torsade`)
-      : pool.request().query(`SELECT * FROM Torsades ORDER BY famille, num_torsade`);
-    return (await q).recordset;
-  } catch { return DEMO_TORSADES; } finally { pool.close(); }
+    const res = famille
+      ? await pool.query('SELECT * FROM "Torsades" WHERE famille=$1 ORDER BY num_torsade', [famille])
+      : await pool.query('SELECT * FROM "Torsades" ORDER BY famille, num_torsade');
+    return res.rows;
+  } catch { return DEMO_TORSADES; }
 }
 
 // ─── Splices ──────────────────────────────────────────────────────────────────
 
 export async function getSplices(famille?: string): Promise<Splice[]> {
-  const pool = await getPool();
+  const pool = getPool();
   if (!pool) return DEMO_SPLICES;
   try {
-    const q = famille
-      ? pool.request().input('f', sql.NVarChar, famille).query(`SELECT * FROM Splices WHERE famille=@f ORDER BY splice`)
-      : pool.request().query(`SELECT * FROM Splices ORDER BY famille, splice`);
-    return (await q).recordset;
-  } catch { return DEMO_SPLICES; } finally { pool.close(); }
+    const res = famille
+      ? await pool.query('SELECT * FROM "Splices" WHERE famille=$1 ORDER BY splice', [famille])
+      : await pool.query('SELECT * FROM "Splices" ORDER BY famille, splice');
+    return res.rows;
+  } catch { return DEMO_SPLICES; }
 }
 
 // ─── Inventaire ───────────────────────────────────────────────────────────────
 
 export async function getInventaire(localisation?: string): Promise<OutilInventaire[]> {
-  const pool = await getPool();
+  const pool = getPool();
   if (!pool) return DEMO_INVENTAIRE;
   try {
-    const q = localisation
-      ? pool.request().input('l', sql.NVarChar, localisation).query(`SELECT * FROM Inventaire WHERE localisation=@l ORDER BY n_outil`)
-      : pool.request().query(`SELECT * FROM Inventaire ORDER BY localisation, n_outil`);
-    return (await q).recordset;
-  } catch { return DEMO_INVENTAIRE; } finally { pool.close(); }
+    const res = localisation
+      ? await pool.query('SELECT * FROM "Inventaire" WHERE localisation=$1 ORDER BY n_outil', [localisation])
+      : await pool.query('SELECT * FROM "Inventaire" ORDER BY localisation, n_outil');
+    return res.rows;
+  } catch { return DEMO_INVENTAIRE; }
 }
 
 // ─── Production ───────────────────────────────────────────────────────────────
 
 export async function getProductionTracking(feuille?: string): Promise<ProductionTracking[]> {
-  const pool = await getPool();
+  const pool = getPool();
   if (!pool) return DEMO_PRODUCTION;
   try {
-    const q = feuille
-      ? pool.request().input('f', sql.NVarChar, feuille).query(`SELECT * FROM ProductionTracking WHERE feuille=@f ORDER BY needed_in_customer`)
-      : pool.request().query(`SELECT * FROM ProductionTracking ORDER BY feuille, needed_in_customer`);
-    return (await q).recordset;
-  } catch { return DEMO_PRODUCTION; } finally { pool.close(); }
+    const res = feuille
+      ? await pool.query('SELECT * FROM "ProductionTracking" WHERE feuille=$1 ORDER BY needed_in_customer', [feuille])
+      : await pool.query('SELECT * FROM "ProductionTracking" ORDER BY feuille, needed_in_customer');
+    return res.rows;
+  } catch { return DEMO_PRODUCTION; }
 }
 
 export async function updateProductionRow(id: number, fields: { plant_status?: string; comment?: string }): Promise<boolean> {
-  const pool = await getPool();
+  const pool = getPool();
   if (!pool) return false;
   try {
     const sets: string[] = [];
-    const req = pool.request().input('id', sql.Int, id);
-    if (fields.plant_status !== undefined) { req.input('s', sql.NVarChar, fields.plant_status); sets.push('plant_status=@s'); }
-    if (fields.comment !== undefined)      { req.input('c', sql.NVarChar, fields.comment);      sets.push('comment=@c'); }
+    const vals: unknown[] = [];
+    let i = 1;
+    if (fields.plant_status !== undefined) { sets.push(`plant_status=$${i++}`); vals.push(fields.plant_status); }
+    if (fields.comment !== undefined)      { sets.push(`comment=$${i++}`);      vals.push(fields.comment); }
     if (!sets.length) return false;
-    await req.query(`UPDATE ProductionTracking SET ${sets.join(',')} WHERE id=@id`);
+    vals.push(id);
+    await pool.query(`UPDATE "ProductionTracking" SET ${sets.join(',')} WHERE id=$${i}`, vals);
     return true;
-  } catch { return false; } finally { pool.close(); }
+  } catch { return false; }
 }
 
 export async function updateRecapRow(id: number, fields: { bl_number?: string; dn_number?: string; notes?: string }): Promise<boolean> {
-  const pool = await getPool();
+  const pool = getPool();
   if (!pool) return false;
   try {
     const sets: string[] = [];
-    const req = pool.request().input('id', sql.Int, id);
-    if (fields.bl_number !== undefined) { req.input('bl', sql.NVarChar, fields.bl_number); sets.push('bl_number=@bl'); }
-    if (fields.dn_number !== undefined) { req.input('dn', sql.NVarChar, fields.dn_number); sets.push('dn_number=@dn'); }
-    if (fields.notes !== undefined)     { req.input('n',  sql.NVarChar, fields.notes);     sets.push('notes=@n'); }
+    const vals: unknown[] = [];
+    let i = 1;
+    if (fields.bl_number !== undefined) { sets.push(`bl_number=$${i++}`); vals.push(fields.bl_number); }
+    if (fields.dn_number !== undefined) { sets.push(`dn_number=$${i++}`); vals.push(fields.dn_number); }
+    if (fields.notes !== undefined)     { sets.push(`notes=$${i++}`);     vals.push(fields.notes); }
     if (!sets.length) return false;
-    await req.query(`UPDATE Recap SET ${sets.join(',')} WHERE id=@id`);
+    vals.push(id);
+    await pool.query(`UPDATE "Recap" SET ${sets.join(',')} WHERE id=$${i}`, vals);
     return true;
-  } catch { return false; } finally { pool.close(); }
+  } catch { return false; }
 }
 
 // ─── Contacts ─────────────────────────────────────────────────────────────────
 
 export async function getContacts(): Promise<Contact[]> {
-  const pool = await getPool();
+  const pool = getPool();
   if (!pool) return DEMO_CONTACTS;
   try {
-    return (await pool.request().query(`SELECT * FROM Contacts ORDER BY project`)).recordset;
-  } catch { return DEMO_CONTACTS; } finally { pool.close(); }
+    return (await pool.query('SELECT * FROM "Contacts" ORDER BY project')).rows;
+  } catch { return DEMO_CONTACTS; }
 }
 
 
@@ -330,25 +347,24 @@ export async function getContacts(): Promise<Contact[]> {
 // ─── Recap ────────────────────────────────────────────────────────────────────
 
 export async function getRecap(feuille?: string): Promise<Recap[]> {
-  const pool = await getPool();
+  const pool = getPool();
   if (!pool) return feuille ? DEMO_RECAP.filter(r => r.feuille === feuille) : DEMO_RECAP;
   try {
-    const q = feuille
-      ? pool.request().input('f', sql.NVarChar, feuille).query(`SELECT * FROM Recap WHERE feuille=@f ORDER BY shipment_date DESC`)
-      : pool.request().query(`SELECT * FROM Recap ORDER BY shipment_date DESC`);
-    return (await q).recordset;
-  } catch { return DEMO_RECAP; } finally { pool.close(); }
+    const res = feuille
+      ? await pool.query('SELECT * FROM "Recap" WHERE feuille=$1 ORDER BY shipment_date DESC', [feuille])
+      : await pool.query('SELECT * FROM "Recap" ORDER BY shipment_date DESC');
+    return res.rows;
+  } catch { return DEMO_RECAP; }
 }
 
 // ─── RM Alternative Materiel ──────────────────────────────────────────────────
 
 export async function getRMAlternatives(): Promise<RMAlternative[]> {
-  const pool = await getPool();
+  const pool = getPool();
   if (!pool) return DEMO_RM;
   try {
-    const r = await pool.request().query(`SELECT * FROM RMAlternativeMateriel ORDER BY id`);
-    return r.recordset;
-  } catch { return DEMO_RM; } finally { pool.close(); }
+    return (await pool.query('SELECT * FROM "RMAlternativeMateriel" ORDER BY id')).rows;
+  } catch { return DEMO_RM; }
 }
 
 // ─── Generic table column whitelist (shared by upload + inline editing) ───────
@@ -402,77 +418,84 @@ export const TABLE_COLUMNS: Record<string, string[]> = {
 };
 
 // Generic single-row update for any whitelisted table. Empty string → NULL.
+// `table` is validated against TABLE_COLUMNS, so the quoted identifier is safe;
+// columns are quoted and every value is passed as a positional parameter.
 export async function updateTableRow(table: string, id: number, fields: Record<string, string>): Promise<boolean> {
   const allowed = TABLE_COLUMNS[table];
   if (!allowed) return false;
-  const pool = await getPool();
+  const pool = getPool();
   if (!pool) return false;
   try {
     const sets: string[] = [];
-    const req = pool.request().input('id', sql.Int, id);
-    let i = 0;
+    const vals: unknown[] = [];
+    let i = 1;
     for (const [key, value] of Object.entries(fields)) {
       if (!allowed.includes(key)) continue;
       const v = (value === '' || value === undefined || value === null) ? null : String(value);
-      req.input(`p${i}`, sql.NVarChar, v);
-      sets.push(`[${key}]=@p${i}`);
-      i++;
+      sets.push(`"${key}"=$${i++}`);
+      vals.push(v);
     }
     if (!sets.length) return false;
-    await req.query(`UPDATE ${table} SET ${sets.join(',')} WHERE id=@id`);
+    vals.push(id);
+    await pool.query(`UPDATE "${table}" SET ${sets.join(',')} WHERE id=$${i}`, vals);
     return true;
-  } catch { return false; } finally { pool.close(); }
+  } catch { return false; }
 }
 
 export async function updateRMAlternative(id: number, fields: Record<string, string>): Promise<boolean> {
-  const pool = await getPool();
-  if (!pool) return false;
-  try {
-    const allowed = ['original_apn','original_material','original_code','original_code2','me_proposal','apn',
-      'description','pe_code','ba','serial_or_ni','comment','afm_build','date_requested','drawing','requestor'];
-    const sets: string[] = [];
-    const req = pool.request().input('id', sql.Int, id);
-    let i = 0;
-    for (const [key, value] of Object.entries(fields)) {
-      if (!allowed.includes(key)) continue;
-      req.input(`p${i}`, sql.NVarChar, String(value ?? ''));
-      sets.push(`[${key}]=@p${i}`);
-      i++;
-    }
-    if (!sets.length) return false;
-    await req.query(`UPDATE RMAlternativeMateriel SET ${sets.join(',')} WHERE id=@id`);
-    return true;
-  } catch { return false; } finally { pool.close(); }
+  return updateTableRow('RMAlternativeMateriel', id, fields);
+}
+
+// Bulk insert for the upload flow. Returns the number of rows inserted, or null
+// when no DATABASE_URL is configured (demo mode). Throws on an unknown table.
+export async function insertRows(table: string, rows: Record<string, unknown>[]): Promise<number | null> {
+  const allowed = TABLE_COLUMNS[table];
+  if (!allowed) throw new Error(`Table inconnue : ${table}`);
+  const pool = getPool();
+  if (!pool) return null;
+  let inserted = 0;
+  for (const row of rows) {
+    const cols = Object.keys(row).filter(
+      c => allowed.includes(c) && row[c] !== undefined && row[c] !== null && row[c] !== '',
+    );
+    if (cols.length === 0) continue;
+    const colList = cols.map(c => `"${c}"`).join(', ');
+    const params = cols.map((_, i) => `$${i + 1}`).join(', ');
+    const vals = cols.map(c => String(row[c] ?? ''));
+    await pool.query(`INSERT INTO "${table}" (${colList}) VALUES (${params})`, vals);
+    inserted++;
+  }
+  return inserted;
 }
 
 // ─── Dashboard Stats ──────────────────────────────────────────────────────────
 
 export async function getDashboardStats(): Promise<DashboardStats> {
-  const pool = await getPool();
+  const pool = getPool();
   if (!pool) return DEMO_STATS;
   try {
-    const r = await pool.request().query(`
+    const r = await pool.query(`
       SELECT
-        (SELECT COUNT(*) FROM Fils)               AS total_fils,
-        (SELECT COUNT(*) FROM Torsades)           AS total_torsades,
-        (SELECT COUNT(*) FROM Splices)            AS total_splices,
-        (SELECT COUNT(*) FROM Inventaire)         AS total_outils,
-        (SELECT COUNT(*) FROM ProductionTracking WHERE plant_status='On Time') AS orders_on_time,
-        (SELECT COUNT(*) FROM ProductionTracking WHERE plant_status='Delay')   AS orders_delay,
-        (SELECT COUNT(*) FROM ProductionTracking)                               AS orders_total
+        (SELECT COUNT(*)::int FROM "Fils")               AS total_fils,
+        (SELECT COUNT(*)::int FROM "Torsades")           AS total_torsades,
+        (SELECT COUNT(*)::int FROM "Splices")            AS total_splices,
+        (SELECT COUNT(*)::int FROM "Inventaire")         AS total_outils,
+        (SELECT COUNT(*)::int FROM "ProductionTracking" WHERE plant_status='On Time') AS orders_on_time,
+        (SELECT COUNT(*)::int FROM "ProductionTracking" WHERE plant_status='Delay')   AS orders_delay,
+        (SELECT COUNT(*)::int FROM "ProductionTracking")                              AS orders_total
     `);
-    const fam = await pool.request().query(`SELECT DISTINCT famille FROM Fils ORDER BY famille`);
+    const fam = await pool.query('SELECT DISTINCT famille FROM "Fils" ORDER BY famille');
     return {
-      ...r.recordset[0],
-      families: fam.recordset.map((x: any) => x.famille),
+      ...r.rows[0],
+      families: fam.rows.map((x: { famille: string }) => x.famille),
     };
-  } catch { return DEMO_STATS; } finally { pool.close(); }
+  } catch { return DEMO_STATS; }
 }
 
 // ─── Search ───────────────────────────────────────────────────────────────────
 
 export async function searchAll(query: string): Promise<{ fils: Fil[]; torsades: Torsade[]; splices: Splice[] }> {
-  const pool = await getPool();
+  const pool = getPool();
   const q = `%${query}%`;
   if (!pool) {
     return {
@@ -483,12 +506,12 @@ export async function searchAll(query: string): Promise<{ fils: Fil[]; torsades:
   }
   try {
     const [fils, torsades, splices] = await Promise.all([
-      pool.request().input('q', sql.NVarChar, q).query(`SELECT TOP 50 * FROM Fils WHERE num_fil LIKE @q OR connect_a LIKE @q OR dpn_connect_a LIKE @q ORDER BY num_fil`),
-      pool.request().input('q', sql.NVarChar, q).query(`SELECT TOP 50 * FROM Torsades WHERE num_torsade LIKE @q OR num_fil LIKE @q ORDER BY num_torsade`),
-      pool.request().input('q', sql.NVarChar, q).query(`SELECT TOP 50 * FROM Splices WHERE splice LIKE @q OR n_file LIKE @q ORDER BY splice`),
+      pool.query('SELECT * FROM "Fils" WHERE num_fil ILIKE $1 OR connect_a ILIKE $1 OR dpn_connect_a ILIKE $1 ORDER BY num_fil LIMIT 50', [q]),
+      pool.query('SELECT * FROM "Torsades" WHERE num_torsade ILIKE $1 OR num_fil ILIKE $1 ORDER BY num_torsade LIMIT 50', [q]),
+      pool.query('SELECT * FROM "Splices" WHERE splice ILIKE $1 OR n_file ILIKE $1 ORDER BY splice LIMIT 50', [q]),
     ]);
-    return { fils: fils.recordset, torsades: torsades.recordset, splices: splices.recordset };
-  } catch { return { fils: [], torsades: [], splices: [] }; } finally { pool.close(); }
+    return { fils: fils.rows, torsades: torsades.rows, splices: splices.rows };
+  } catch { return { fils: [], torsades: [], splices: [] }; }
 }
 
 // ─── Demo data (used when DB is not connected) ────────────────────────────────

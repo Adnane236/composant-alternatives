@@ -6,12 +6,12 @@ Application Next.js pour gérer des composants industriels et rechercher les pi�
 - Rechercher les composants depuis un cahier de charge
 - Identifier les pièces disponibles
 - Lister les alternatives pour les composants indisponibles
-- Prévoir un backend SQL Server pour stocker les informations
+- Backend PostgreSQL (Neon / Supabase / self-hosted) pour stocker les informations
 - Proposer une interface plus attractive pour le dashboard
 
 ## Installation
 1. Copier `.env.local.example` en `.env.local`
-2. Mettre à jour les variables SQL Server
+2. Renseigner `DATABASE_URL` (PostgreSQL — laisser vide pour les données de démonstration)
 3. Installer les dépendances :
    ```bash
    npm install
@@ -21,10 +21,14 @@ Application Next.js pour gérer des composants industriels et rechercher les pi�
    npm run dev
    ```
 
-## Schéma SQL Server
-Le fichier `sql/schema.sql` contient les tables:
-- `Components`
-- `Alternatives`
+## Schéma PostgreSQL
+Le fichier `sql/schema.sql` contient les tables (`Fils`, `Torsades`, `Splices`,
+`SpliceFils`, `Inventaire`, `ProductionTracking`, `Contacts`, `Recap`,
+`RMAlternativeMateriel`) et des données d'exemple. `sql/schema_create_only.sql`
+crée les tables sans données. Appliquer avec :
+```bash
+psql "$DATABASE_URL" -f sql/schema.sql
+```
 
 ## Fonctionnalités ajoutées
 - Page d'import et de recherche : `/import`
@@ -34,5 +38,5 @@ Le fichier `sql/schema.sql` contient les tables:
 
 ## Notes
 - Le projet fonctionne immédiatement avec des données mock.
-- Pour connecter SQL Server, configurez les variables d'environnement et exécutez `sql/schema.sql` sur votre instance.
+- Pour connecter PostgreSQL, définissez `DATABASE_URL` et exécutez `sql/schema.sql` sur votre base.
 - Pour afficher le logo Versigent, placez les fichiers d'image dans `public/logos/` et nommez le logo principal `versigent-white.png`.
